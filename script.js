@@ -23,7 +23,7 @@ let PCC;
 let debut;
 let fin;
 
-//! UTILITIES FUNCTION============================================================================================================== 
+//! UTILITIES FUNCTIONS ============================================================================================================== 
 
 document.addEventListener("DOMContentLoaded", function () {
     init();
@@ -34,7 +34,7 @@ function random(min, max) {
     return Math.random() * (max - min) + min;
 }
 
-function clearOuput() {
+function clearOutput() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 }
 
@@ -74,7 +74,7 @@ class Point {
 
     print() {
         ctx.beginPath();
-        ctx.arc(this.x, this.y, 2, 0, 2 * Math.PI);
+        ctx.arc(this.x, this.y, 3, 0, 2 * Math.PI);
         ctx.fill();
     }
 };
@@ -110,12 +110,18 @@ class Sommet {
     constructor(p) {
         this.position = p;
         this.previous = null;
-        this.distance = INFIFI;
+        this.distance = INFINI;
         this.voisins = new Map();
     }
 
-    addVoisin(d, s) {
-        this.voisins.set(d, s);
+    static compare(a, b) {
+        if (a.distance < b.distance) {
+            return -1;
+        }
+        else if (a.distance > b.distance) {
+            return 1;
+        }
+        else { return 0; }
     }
 }
 
@@ -129,9 +135,10 @@ function init() {
 }
 
 function reset() {
-    clearOuput();
-    sommets.clear();
-    obstacles.clear();
+    clearOutput();
+    graphe_current.length = 0;
+    obstacles.length = 0;
+
 }
 
 function generateGraphe() {
@@ -174,42 +181,96 @@ function generateGraphe() {
     }
     while (i < nbPoints - 2);
 
-    fin = new Sommet(new Point(canvas.width, canvas.height));
+    fin = new Sommet(new Point(canvas.width - 5, canvas.height - 5));
     fin.distance = INFINI;
     graphe_current.push(fin);
+
+    console.log("--- fin génération points ---");
+    console.log("--- début test voisins ---");
 
     //? recherche des voisins.
     for (i = 0; i < nbPoints; i++) {
         s = graphe_current[i];
         for (j = 0; j < nbPoints; j++) {
             tmp = graphe_current[j];
-            d = Point.distance(s, tmp);
+            d = Point.distance(s.position, tmp.position);
 
             if (d <= R) {
-                s.addVoisin(d, tmp);
+                s.voisins.set(d, tmp);
             }
         }
     }
+
+    console.log("--- fin génération graphes ---");
+    render();
 }
 
 function render() {
     console.log("--- begin render ---");
+    clearOutput();
     ctx.fillStyle = "grey";
     for (i = 0; i < nbObstacles; i++) {
         obstacles[i].print();
     }
 
     ctx.fillStyle = "red";
-    for (i = 0; i < nbPoints; i++) {
-        graphe_current[i].position.print();
-        for (j = 0; j < graphe_current[i].voisins.size; j++) {
+    for (i = 0; i < graphe_current.length; i++) {
+        current = graphe_current[i];
+        current.position.print();
+
+        for (const value of current.voisins.values()) {
+            ctx.strokeStyle = "red";
             ctx.beginPath();
-            ctx.moveTo(graphe_current[i].position.x, graphe_current[i].position.y);
-            ctx.lineTo()
+            ctx.moveTo(current.position.x, current.position.y);
+            ctx.lineTo(value.position.x, value.position.y);
+            ctx.stroke();
         }
     }
+
+    if (PCC != null) {
+        ctx.strokeStyle = "green";
+        for (const point of PCC) {
+            if (point.previous != null) {
+                ctx.beginPath();
+                ctx.moveTo(point.position.x, point.position.y);
+                ctx.lineTo(point.previous.position.x, point.previous.position.y);
+                ctx.stroke();
+            }
+        }
+    }
+
+    ctx.fillStyle = "cyan";
+    debut.position.print();
+    fin.position.print();
+    console.log("--- end render ---");
 }
 
 function applyDijkstra() {
+    PCC = new Array();
+    console.log("--- debut dijkstra ---");
+    let tmp;
+    do {
+        graphe_current.sort(Sommet.compare);
+        tmp = graphe_current[0];
+        if (tmp != null) {
+            for (const [arc, voisin] of tmp.voisins.entries()) {
+                if (voisin.distance > arc + tmp.distance) {
+                    voisin.distance = arc + tmp.distance;
+                    voisin.previous = tmp;
+                }
+            }
 
+            graphe_current.shift();
+        }
+    } while (tmp != fin);
+
+    console.log("--- fin dijkstra ---");
+
+    tmp = fin;
+    while (tmp != null) {
+        PCC.push(tmp);
+        tmp = tmp.previous;
+    }
+    console.log(PCC.length);
+    render();
 }
