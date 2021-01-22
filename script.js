@@ -16,7 +16,9 @@ let canvas = document.getElementById("output");
 let ctx = canvas.getContext('2d');
 
 let sommets;
-let obstacles;
+let graphe_current;
+let graphe_old;
+let PCC;
 
 let debut;
 let fin;
@@ -111,6 +113,10 @@ class Sommet {
         this.distance = INFIFI;
         this.voisins = new Map();
     }
+
+    addVoisin(d, s) {
+        this.voisins.set(d, s);
+    }
 }
 
 //! DIJKSTRA FUNCTIONS ============================================================================================================
@@ -131,14 +137,20 @@ function reset() {
 function generateGraphe() {
     console.log("--- début génération graphe ---");
 
-    sommets = new Array();
+    graphe_current = new Array();
     obstacles = new Array();
 
+    //? génération des obstacles.
     for (i = 0; i < nbObstacles; i++) {
         let rectangle = new Rectangle(0, 0, 0, 0);
         rectangle.randomize();
         obstacles.push(rectangle);
     }
+
+    //? génération du graphe.
+    debut = new Sommet(new Point(5, 5));
+    debut.distance = 0;
+    graphe_current.push(debut);
 
     i = 0;
     do {
@@ -154,16 +166,30 @@ function generateGraphe() {
         }
 
         if (!collide) {
-            sommets.push(point);
+            tmp = new Sommet(point);
+            tmp.distance = INFINI;
+            graphe_current.push(tmp);
             i++;
         }
-        else {
-            console.log("point NOT OK");
+    }
+    while (i < nbPoints - 2);
+
+    fin = new Sommet(new Point(canvas.width, canvas.height));
+    fin.distance = INFINI;
+    graphe_current.push(fin);
+
+    //? recherche des voisins.
+    for (i = 0; i < nbPoints; i++) {
+        s = graphe_current[i];
+        for (j = 0; j < nbPoints; j++) {
+            tmp = graphe_current[j];
+            d = Point.distance(s, tmp);
+
+            if (d <= R) {
+                s.addVoisin(d, tmp);
+            }
         }
     }
-    while (i < nbPoints);
-
-    render();
 }
 
 function render() {
@@ -175,7 +201,12 @@ function render() {
 
     ctx.fillStyle = "red";
     for (i = 0; i < nbPoints; i++) {
-        sommets[i].print();
+        graphe_current[i].position.print();
+        for (j = 0; j < graphe_current[i].voisins.size; j++) {
+            ctx.beginPath();
+            ctx.moveTo(graphe_current[i].position.x, graphe_current[i].position.y);
+            ctx.lineTo()
+        }
     }
 }
 
