@@ -4,24 +4,24 @@ const DEADZONE = 2;
 const MIN_RECT_SIZE = 50;
 const MAX_RECT_SIZE = 80;
 
-
 let nbPoints = 4000;
 let nbObstacles = 20;
 let R = 20;
 let r = 20;
 let nbPointsIteration = 30;
 
-
 let canvas = document.getElementById("output");
 let ctx = canvas.getContext('2d');
 
 let sommets;
 let graphe_current;
-let graphe_old;
+let graphe_previous;
 let PCC;
+let cptIteration = 0;
 
 let debut;
 let fin;
+
 
 //! UTILITIES FUNCTIONS ============================================================================================================== 
 
@@ -141,10 +141,51 @@ function reset() {
 
 }
 
-function generateGraphe() {
-    console.log("--- début génération graphe ---");
+function generatePoint(modeIteration, ref) {
+    let p = null;
+    let restart = false;
+    do {
+        restart = false;
+        x = random(0, canvas.width);
+        y = random(0, canvas.height);
+        p = new Point(x, y);
 
+        //! ce pourquoi javascript pue la merde. si on change _i par i on obtient une boucle infinie.
+        //! pourquoi ? parceque l'on appele la fonction dans une boucle for sur i et les deux variables ne sont visiblement 
+        //! pas séparées.
+        for (_i = 0; _i < nbObstacles; _i++) {
+            if (obstacles[_i].collision(p)) {
+                restart = true;
+            }
+        }
+
+        if (modeIteration == true && Point.distance(ref.position, p) > r) {
+            restart = true;
+        }
+    } while (restart == true);
+
+    return p;
+}
+
+function generateArcs() {
+    for (i = 0; i < graphe_current.length; i++) {
+        let s = graphe_current[i];
+        for (j = 0; j < graphe_current.length; j++) {
+            let tmp = graphe_current[j];
+            let d = Point.distance(s.position, tmp.position);
+
+            if (d <= R) {
+                s.voisins.set(d, tmp);
+            }
+        }
+    }
+    console.log("done arcs");
+}
+
+function generateGraphe() {
+    let beginTime = performance.now();
     graphe_current = new Array();
+    graphe_previous = new Array();
     obstacles = new Array();
 
     //? génération des obstacles.
@@ -159,58 +200,45 @@ function generateGraphe() {
     debut.distance = 0;
     graphe_current.push(debut);
 
-    i = 0;
-    do {
-        x = random(0, canvas.width);
-        y = random(0, canvas.height);
-        let point = new Point(x, y);
-
-        collide = false;
-        for (j = 0; j < nbObstacles; j++) {
-            if (obstacles[j].collision(point)) {
-                collide = true;
-            }
-        }
-
-        if (!collide) {
-            tmp = new Sommet(point);
-            tmp.distance = INFINI;
-            graphe_current.push(tmp);
-            i++;
-        }
+    for (i = 0; i < nbPoints - 2; i++) {
+        let p = generatePoint(false, null);
+        let s = new Sommet(p);
+        s.distance = INFINI;
+        graphe_current.push(s);
     }
-    while (i < nbPoints - 2);
 
     fin = new Sommet(new Point(canvas.width - 5, canvas.height - 5));
     fin.distance = INFINI;
     graphe_current.push(fin);
 
-    console.log("--- fin génération points ---");
-    console.log("--- début test voisins ---");
 
     //? recherche des voisins.
-    for (i = 0; i < nbPoints; i++) {
-        s = graphe_current[i];
-        for (j = 0; j < nbPoints; j++) {
-            tmp = graphe_current[j];
-            d = Point.distance(s.position, tmp.position);
-
-            if (d <= R) {
-                s.voisins.set(d, tmp);
-            }
-        }
-    }
-
-    console.log("--- fin génération graphes ---");
+    generateArcs();
+    let endTime = performance.now();
+    console.log("done generator: " + (endTime - beginTime) + " ms");
     render();
 }
 
 function render() {
-    console.log("--- begin render ---");
+    let beginTime = performance.now();
     clearOutput();
     ctx.fillStyle = "grey";
     for (i = 0; i < nbObstacles; i++) {
         obstacles[i].print();
+    }
+
+    ctx.fillStyle = "orange";
+    for (i = 0; i < graphe_previous.length; i++) {
+        current = graphe_previous[i];
+        current.position.print();
+
+        for (const value of current.voisins.values()) {
+            ctx.strokeStyle = "orange";
+            ctx.beginPath();
+            ctx.moveTo(current.position.x, current.position.y);
+            ctx.lineTo(value.position.x, value.position.y);
+            ctx.stroke();
+        }
     }
 
     ctx.fillStyle = "red";
@@ -242,35 +270,75 @@ function render() {
     ctx.fillStyle = "cyan";
     debut.position.print();
     fin.position.print();
-    console.log("--- end render ---");
+
+    let endTime = performance.now();
+    console.log("done render: " + (endTime - beginTime) + " ms");
+}
+
+function iterations() {
+    if (cptIteration != 0) {
+        let beginTime = performance.now();
+        R = R - (R / 8);
+        r = r - (r / 8);
+
+        graphe_current.length = 0;
+
+        debut_p = new Point(5, 5);
+        debut = new Sommet(debut_p);
+        debut.distance = 0;
+        graphe_current.push(debut);
+
+        for (i = 0; i < PCC.length; i++) {
+
+            let ref = PCC[i];
+            for (j = 0; j < nbPointsIteration; j++) {
+                let p = generatePoint(true, ref);
+                let s = new Sommet(p);
+                s.distance = INFINI;
+                graphe_current.push(s);
+            }
+        }
+
+        fin_p = new Point(canvas.width - 5, canvas.height - 5);
+        fin = new Sommet(fin_p);
+        fin.distance = INFINI;
+        graphe_current.push(fin);
+
+        generateArcs();
+        let endTime = performance.now();
+        console.log("done iterations: " + (endTime - beginTime) + " ms");
+    }
 }
 
 function applyDijkstra() {
+    console.log("============================================");
+    iterations();
+    let beginTime = performance.now();
     PCC = new Array();
-    console.log("--- debut dijkstra ---");
+    graphe_previous.length = 0;
     let tmp;
     do {
         graphe_current.sort(Sommet.compare);
         tmp = graphe_current[0];
         if (tmp != null) {
-            for (const [arc, voisin] of tmp.voisins.entries()) {
+            for ([arc, voisin] of tmp.voisins.entries()) {
                 if (voisin.distance > arc + tmp.distance) {
                     voisin.distance = arc + tmp.distance;
                     voisin.previous = tmp;
                 }
             }
-
+            graphe_previous.push(tmp);
             graphe_current.shift();
         }
     } while (tmp != fin);
-
-    console.log("--- fin dijkstra ---");
 
     tmp = fin;
     while (tmp != null) {
         PCC.push(tmp);
         tmp = tmp.previous;
     }
-    console.log(PCC.length);
+    let endTime = performance.now();
+    console.log("done dijkstra: " + (endTime - beginTime) + " ms");
+    cptIteration++;
     render();
 }
