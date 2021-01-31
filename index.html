@@ -10,25 +10,41 @@
 
 <body>
     <div class="commandBox">
-        <label for="nbPoints" id="label_nbPoints">Nombre de points: </label>
-        <input type="number" id="nbPoints" />
+        <div class="param">
+            <h1>DIJKSTRA</h1>
+        </div>
+        <fieldset>
+            <legend>Paramètres</legend>
+            <div class="param">
+                <label for="nbPoints" id="label_nbPoints">Points: </label>
+                <input type="number" id="nbPoints" />
+            </div>
 
-        <label for="nbObstacles" id="label_nbObstacles">Nombre d'obstacles: </label>
-        <input type="number" id="nbObstacles" />
+            <div class="param">
+                <label for="nbObstacles" id="label_nbObstacles">Obstacles: </label>
+                <input type="number" id="nbObstacles" />
+            </div>
 
-        <label for="R" id="label_R">distance max de recherche (R): </label>
-        <input type="number" id="R" />
+            <div class="param">
+                <label for="R" id="label_R">D. max. recherche (R) </label>
+                <input type="number" id="R" />
+            </div>
 
-        <label for="r" id="label_r">distance max de generation (r): </label>
-        <input type="number" id="r" />
+            <div class="param">
+                <label for="r" id="label_r">D. max. générateur (r) </label>
+                <input type="number" id="r" />
+            </div>
+        </fieldset>
 
-        <br />
-        <div class="button" id="reset">Reset</div>
-        <div class="button" id="generate">Générer un graphe</div>
-        <div class="button" id="apply">Appliquer Dijkstra</div>
+
+        <fieldset>
+            <legend>Commandes</legend>
+            <div class="button" id="reset">Réinitialisation</div>
+            <div class="button" id="generate">Générer graphe</div>
+            <div class="button" id="apply">Appliquer Dijkstra</div>
+        </fieldset>
     </div>
-    <br />
-    <canvas id="output" width="800" height="600"></canvas>
+    <canvas id="output"></canvas>
 </body>
 <script type="text/javascript" src="heap.js" defer></script>
 <script type="text/javascript" src="script.js" defer></script>

@@ -1,0 +1,50 @@
+canvas{
+    border: 1px solid black;
+    margin: 0 auto;
+    flex-grow: 1;
+}
+
+
+body{
+    display: flex;
+    align-items: stretch;
+    align-content: space-between;
+}
+
+.button{
+    background: cyan;
+    border: 1px solid blue;
+    margin: 5px;
+    text-align: center;
+}
+
+.button:hover{
+    cursor: pointer;
+}
+
+input{
+    width: 20em;
+}
+
+label{
+    display: inline-block;
+    width: 15em;
+    margin: 10px;
+}
+
+param{
+    display:block;
+    margin: 0 auto;
+}
+
+h1{
+    text-align:center;
+}
+
+.commandBox{
+    width: 300px;
+    top: 0;
+    left: 0;
+    border: 1px solid black;
+}
+

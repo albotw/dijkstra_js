@@ -26,9 +26,17 @@ let fin;
 //! UTILITIES FUNCTIONS ============================================================================================================== 
 
 document.addEventListener("DOMContentLoaded", function () {
+    setupCanvas();
     init();
     registerEventListeners();
 })
+
+function setupCanvas() {
+    canvas = document.getElementById("output");
+    ctx = canvas.getContext('2d');
+    canvas.width = canvas.offsetWidth
+    canvas.height = canvas.offsetHeight;
+}
 
 function random(min, max) {
     return Math.random() * (max - min) + min;
@@ -278,8 +286,11 @@ function render() {
 function iterations() {
     if (cptIteration != 0) {
         let beginTime = performance.now();
-        R = R - (R / 8);
-        r = r - (r / 8);
+        R = R - (R / 4);
+        r = r - (r / 4);
+
+        console.log("R: " + R);
+        console.log("r: " + r);
 
         graphe_current.length = 0;
 
