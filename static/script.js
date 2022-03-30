@@ -25,108 +25,130 @@ let fin;
 
 //! UTILITIES FUNCTIONS ============================================================================================================== 
 
-document.addEventListener("DOMContentLoaded", function () {
+document.addEventListener("DOMContentLoaded", function ()
+{
     setupCanvas();
     init();
     registerEventListeners();
 })
 
-function setupCanvas() {
+function setupCanvas()
+{
     canvas = document.getElementById("output");
     ctx = canvas.getContext('2d');
     canvas.width = canvas.offsetWidth
     canvas.height = canvas.offsetHeight;
 }
 
-function random(min, max) {
+function random(min, max)
+{
     return Math.random() * (max - min) + min;
 }
 
-function clearOutput() {
+function clearOutput()
+{
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 }
 
-function registerEventListeners() {
+function registerEventListeners()
+{
     document.getElementById("reset").addEventListener('click', reset);
     document.getElementById("generate").addEventListener('click', generateGraphe);
     document.getElementById("apply").addEventListener("click", applyDijkstra);
 
-    document.getElementById("nbPoints").addEventListener("change", function () {
+    document.getElementById("nbPoints").addEventListener("change", function ()
+    {
         nbPoints = document.getElementById("nbPoints").value;
     });
 
-    document.getElementById("nbObstacles").addEventListener("change", function () {
+    document.getElementById("nbObstacles").addEventListener("change", function ()
+    {
         nbObstacles = document.getElementById("nbObstacles").value;
     });
 
-    document.getElementById("R").addEventListener("change", function () {
+    document.getElementById("R").addEventListener("change", function ()
+    {
         R = document.getElementById("R").value;
     });
 
-    document.getElementById("r").addEventListener("change", function () {
+    document.getElementById("r").addEventListener("change", function ()
+    {
         r = document.getElementById("r").value;
     });
 }
 
 //! OBJECT FUNCTIONS ==============================================================================================================
-
-class Point {
-    constructor(x, y) {
+class Point
+{
+    constructor(x, y)
+    {
         this.x = x;
         this.y = y;
     }
 
-    static distance(p1, p2) {
+    static distance(p1, p2)
+    {
         return Math.sqrt(Math.pow(p1.x - p2.x, 2.0) + Math.pow(p1.y - p2.y, 2.0));
     }
 
-    print() {
+    print()
+    {
         ctx.beginPath();
         ctx.arc(this.x, this.y, 3, 0, 2 * Math.PI);
         ctx.fill();
     }
 };
 
-class Rectangle {
-    constructor(x, y, width, height) {
+class Rectangle
+{
+    constructor(x, y, width, height)
+    {
         this.x = x;
         this.y = y;
         this.width = width;
         this.height = height;
     }
 
-    randomize() {
+    randomize()
+    {
         this.x = random(0, canvas.width);
         this.y = random(0, canvas.height);
         this.width = random(MIN_RECT_SIZE, MAX_RECT_SIZE);
         this.height = random(MIN_RECT_SIZE, MAX_RECT_SIZE);
     }
 
-    collision(p) {
+    collision(p)
+    {
         return ((this.x - DEADZONE) <= p.x)
             && ((this.y - DEADZONE) <= p.y)
             && ((this.x + this.width + DEADZONE) >= p.x)
             && ((this.y + this.height + DEADZONE) >= p.y);
     }
 
-    print() {
+    print()
+    {
         ctx.fillRect(this.x, this.y, this.width, this.height);
     }
 }
 
-class Sommet {
-    constructor(p) {
+class Sommet
+{
+    constructor(p)
+    {
         this.position = p;
         this.previous = null;
         this.distance = INFINI;
         this.voisins = new Map();
     }
 
-    static compare(a, b) {
-        if (a.distance < b.distance) {
+    static compare(a, b)
+    {
+        if (a.distance < b.distance)
+        {
             return -1;
         }
-        else if (a.distance > b.distance) {
+        else if (a.distance > b.distance)
+        {
             return 1;
         }
         else { return 0; }
@@ -135,24 +157,28 @@ class Sommet {
 
 //! DIJKSTRA FUNCTIONS ============================================================================================================
 
-function init() {
+function init()
+{
     document.getElementById("nbPoints").value = nbPoints;
     document.getElementById("nbObstacles").value = nbObstacles;
     document.getElementById("R").value = R;
     document.getElementById("r").value = r;
 }
 
-function reset() {
+function reset()
+{
     clearOutput();
     graphe_current.length = 0;
     obstacles.length = 0;
 
 }
 
-function generatePoint(modeIteration, ref) {
+function generatePoint(modeIteration, ref)
+{
     let p = null;
     let restart = false;
-    do {
+    do
+    {
         restart = false;
         x = random(0, canvas.width);
         y = random(0, canvas.height);
@@ -161,28 +187,35 @@ function generatePoint(modeIteration, ref) {
         //! ce pourquoi javascript pue la merde. si on change _i par i on obtient une boucle infinie.
         //! pourquoi ? parceque l'on appele la fonction dans une boucle for sur i et les deux variables ne sont visiblement 
         //! pas séparées.
-        for (_i = 0; _i < nbObstacles; _i++) {
-            if (obstacles[_i].collision(p)) {
+        for (let i = 0; i < nbObstacles; i++)
+        {
+            if (obstacles[i].collision(p))
+            {
                 restart = true;
             }
         }
 
-        if (modeIteration == true && Point.distance(ref.position, p) > r) {
+        if (modeIteration === true && Point.distance(ref.position, p) > r)
+        {
             restart = true;
         }
-    } while (restart == true);
+    } while (restart === true);
 
     return p;
 }
 
-function generateArcs() {
-    for (i = 0; i < graphe_current.length; i++) {
+function generateArcs()
+{
+    for (i = 0; i < graphe_current.length; i++)
+    {
         let s = graphe_current[i];
-        for (j = 0; j < graphe_current.length; j++) {
+        for (j = 0; j < graphe_current.length; j++)
+        {
             let tmp = graphe_current[j];
             let d = Point.distance(s.position, tmp.position);
 
-            if (d <= R) {
+            if (d <= R)
+            {
                 s.voisins.set(d, tmp);
             }
         }
@@ -190,14 +223,16 @@ function generateArcs() {
     console.log("done arcs");
 }
 
-function generateGraphe() {
+function generateGraphe()
+{
     let beginTime = performance.now();
     graphe_current = new Array();
     graphe_previous = new Array();
     obstacles = new Array();
 
     //? génération des obstacles.
-    for (i = 0; i < nbObstacles; i++) {
+    for (let i = 0; i < nbObstacles; i++)
+    {
         let rectangle = new Rectangle(0, 0, 0, 0);
         rectangle.randomize();
         obstacles.push(rectangle);
@@ -208,7 +243,8 @@ function generateGraphe() {
     debut.distance = 0;
     graphe_current.push(debut);
 
-    for (i = 0; i < nbPoints - 2; i++) {
+    for (let i = 0; i < nbPoints - 2; i++)
+    {
         let p = generatePoint(false, null);
         let s = new Sommet(p);
         s.distance = INFINI;
@@ -227,20 +263,24 @@ function generateGraphe() {
     render();
 }
 
-function render() {
+function render()
+{
     let beginTime = performance.now();
     clearOutput();
     ctx.fillStyle = "grey";
-    for (i = 0; i < nbObstacles; i++) {
+    for (i = 0; i < nbObstacles; i++)
+    {
         obstacles[i].print();
     }
 
     ctx.fillStyle = "orange";
-    for (i = 0; i < graphe_previous.length; i++) {
+    for (i = 0; i < graphe_previous.length; i++)
+    {
         current = graphe_previous[i];
         current.position.print();
 
-        for (const value of current.voisins.values()) {
+        for (const value of current.voisins.values())
+        {
             ctx.strokeStyle = "orange";
             ctx.beginPath();
             ctx.moveTo(current.position.x, current.position.y);
@@ -250,11 +290,13 @@ function render() {
     }
 
     ctx.fillStyle = "red";
-    for (i = 0; i < graphe_current.length; i++) {
+    for (i = 0; i < graphe_current.length; i++)
+    {
         current = graphe_current[i];
         current.position.print();
 
-        for (const value of current.voisins.values()) {
+        for (const value of current.voisins.values())
+        {
             ctx.strokeStyle = "red";
             ctx.beginPath();
             ctx.moveTo(current.position.x, current.position.y);
@@ -263,10 +305,13 @@ function render() {
         }
     }
 
-    if (PCC != null) {
+    if (PCC != null)
+    {
         ctx.strokeStyle = "green";
-        for (const point of PCC) {
-            if (point.previous != null) {
+        for (const point of PCC)
+        {
+            if (point.previous != null)
+            {
                 ctx.beginPath();
                 ctx.moveTo(point.position.x, point.position.y);
                 ctx.lineTo(point.previous.position.x, point.previous.position.y);
@@ -283,8 +328,10 @@ function render() {
     console.log("done render: " + (endTime - beginTime) + " ms");
 }
 
-function iterations() {
-    if (cptIteration != 0) {
+function iterations()
+{
+    if (cptIteration != 0)
+    {
         let beginTime = performance.now();
         R = R - (R / 4);
         r = r - (r / 4);
@@ -299,10 +346,12 @@ function iterations() {
         debut.distance = 0;
         graphe_current.push(debut);
 
-        for (i = 0; i < PCC.length; i++) {
+        for (i = 0; i < PCC.length; i++)
+        {
 
             let ref = PCC[i];
-            for (j = 0; j < nbPointsIteration; j++) {
+            for (j = 0; j < nbPointsIteration; j++)
+            {
                 let p = generatePoint(true, ref);
                 let s = new Sommet(p);
                 s.distance = INFINI;
@@ -321,19 +370,24 @@ function iterations() {
     }
 }
 
-function applyDijkstra() {
+function applyDijkstra()
+{
     console.log("============================================");
     iterations();
     let beginTime = performance.now();
-    PCC = new Array();
+    PCC = [];
     graphe_previous.length = 0;
     let tmp;
-    do {
+    do
+    {
         graphe_current.sort(Sommet.compare);
         tmp = graphe_current[0];
-        if (tmp != null) {
-            for ([arc, voisin] of tmp.voisins.entries()) {
-                if (voisin.distance > arc + tmp.distance) {
+        if (tmp != null)
+        {
+            for ([arc, voisin] of tmp.voisins.entries())
+            {
+                if (voisin.distance > arc + tmp.distance)
+                {
                     voisin.distance = arc + tmp.distance;
                     voisin.previous = tmp;
                 }
@@ -341,10 +395,11 @@ function applyDijkstra() {
             graphe_previous.push(tmp);
             graphe_current.shift();
         }
-    } while (tmp != fin);
+    } while (tmp !== fin);
 
     tmp = fin;
-    while (tmp != null) {
+    while (tmp != null)
+    {
         PCC.push(tmp);
         tmp = tmp.previous;
     }
