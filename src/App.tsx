@@ -1,5 +1,5 @@
 import './App.css';
-import {createNode, KDTree} from "./KDTree";
+import {createNode, KDTree} from "./datastructures/KDTree";
 
 function App() {
   let tree : KDTree = new KDTree();

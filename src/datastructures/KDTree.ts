@@ -80,7 +80,7 @@ export class KDTree{
         let distTargetToA = this.distance(target, a);
         let distTargetToB = this.distance(target, b);
 
-        //le != 0 permet de cibler des points de l'arbre comme cible.
+        //le != 0 permet de cibler des points de l'arbre
         if (distTargetToA <= distTargetToB && distTargetToA != 0.0) return a;
         else if (distTargetToA > distTargetToB && distTargetToB != 0.0) return b;
     }
